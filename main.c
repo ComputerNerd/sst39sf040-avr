@@ -2,7 +2,9 @@
 #include <avr/io.h> 
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 #include <stdint.h>
+#include "shifttab.h"
 #define NOP asm volatile ("nop")
 #define datIn DDRC&=~31; DDRD&=~224
 #define datOut DDRC|=31; DDRD|=224
@@ -14,7 +16,55 @@ void shift24(uint32_t addr)
 	uint8_t * dat=(uint8_t *)&addr;
 	int8_t x;
 	PORTB&=~3;
-	for (x=7;x>=0;x--)
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab27+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab37+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab47+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab26+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab36+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab46+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab25+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab35+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab45+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab24+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab34+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab44+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab23+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab33+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab43+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab22+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab32+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab42+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab21+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab31+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab41+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	PORTD&=~28;//clear pins
+	PORTD|=pgm_read_byte_near(shiftab20+dat[0]);
+	PORTD|=pgm_read_byte_near(shiftab30+dat[1]);
+	PORTD|=pgm_read_byte_near(shiftab40+dat[2]);
+	PORTB|=4;
+	PORTB&=~4;//pulse clock
+	/*for (x=7;x>=0;x--)
 	{
 		PORTD&=~28;//clear pins
 		PORTD|=((dat[0]>>x)&1)<<2;
@@ -22,7 +72,7 @@ void shift24(uint32_t addr)
 		PORTD|=((dat[2]>>x)&1)<<4;
 		PORTB|=4;
 		PORTB&=~4;//pulse clock
-	}
+	}*/
 	PORTB|=2;//send to parrell output
 	PORTB&=~2;
 }
@@ -197,8 +247,9 @@ inline void pgmB(uint32_t addr,uint8_t dat)
  // datIn;
  //while ((pollB()&64)!=(pollB()&64)) {}
  //
-   _delay_us(21);
-  PORTB&=~(1<<5);//set WE# to low
+   /*_delay_us(22);
+  PORTB&=~(1<<5);//set WE# to low*/
+  //This assumes a delay will follow the writting of the byte
   serialWrB('N');
 }
 uint8_t verifyB(void)
@@ -272,6 +323,7 @@ StringPgm(PSTR("Manufacturer ID: 0x"));
 	for (x=0;x<524288UL;x++)
 	{
 		pgmB(x,USART_Receive());
+		serialWrB(readB(x));
 	}
-	ReadChip();
+	//ReadChip();
 }
