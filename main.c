@@ -312,18 +312,21 @@ StringPgm(PSTR("Manufacturer ID: 0x"));
 	_delay_ms(100);
 	StringPgm(PSTR("RDY"));
 	USART_Receive();//wait for handshake
-	USART_Receive();//wait for handshake
+	char mode = USART_Receive();//wait for mode
 	StringPgm(PSTR("RDY"));
 	serialWrB(readId(0));
 	serialWrB(readId(1));
-	chipErase();
-	serialWrB('D');
-	verifyF();
-	uint32_t x;
-	for (x=0;x<524288UL;x++)
-	{
-		pgmB(x,USART_Receive());
-		serialWrB(readB(x));
-	}
-	//ReadChip();
+	if(mode=='W'){
+		chipErase();
+		serialWrB('D');
+		verifyF();
+		uint32_t x;
+		for (x=0;x<524288UL;x++){
+			pgmB(x,USART_Receive());
+			serialWrB(readB(x));
+		}
+	}else if(mode=='R')
+		ReadChip();
+	else
+		while(1);//an error has occured
 }
