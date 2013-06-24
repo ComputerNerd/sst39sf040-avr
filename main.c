@@ -1,4 +1,4 @@
-#define F_CPU 16000000UL  // 16 MHz
+#define F_CPU 16000000UL// 16 MHz
 #include <avr/io.h> 
 #include <avr/pgmspace.h>
 #include <util/delay.h>
@@ -113,76 +113,72 @@ inline uint8_t wrDat(uint8_t dat)
 }
 inline void sendCmd(uint32_t addr,uint8_t dat)
 {
-  shift24(addr);
-  PORTB&=~((1<<3)|(1<<5));//set CE# and WE# to low (latch address)
-  wrDat(dat);
-  PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high (latch data)
+	shift24(addr);
+	PORTB&=~((1<<3)|(1<<5));//set CE# and WE# to low (latch address)
+	wrDat(dat);
+	PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high (latch data)
 }
 inline void sendCmdSlowAddr(uint32_t addr,uint8_t dat)
 {
-  shift24(addr);
-  PORTB&=~((1<<3)|(1<<5));//set CE# and WE# to low (latch address)
-  NOP;
-  NOP;
-  NOP;
-  wrDat(dat);
-  PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high (latch data)
+	shift24(addr);
+	PORTB&=~((1<<3)|(1<<5));//set CE# and WE# to low (latch address)
+	NOP;
+	NOP;
+	NOP;
+	wrDat(dat);
+	PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high (latch data)
 }
-void ReadChip(void)
+void ReadChip(uint32_t cap)
 {//sends entire flash content to serial
-  datIn;
-  PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
-  PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
-  uint32_t addr;
-  for (addr=0;addr<524288;addr++)
-  {
-   shift24(addr);
-   serialWrB(rdDat());
-  }
-  PORTB|=(1<<3)|(1<<4);//CE# OE# to high
+	datIn;
+	PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
+	PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
+	uint32_t addr;
+	for (addr=0;addr<cap;++addr){
+		shift24(addr);
+		serialWrB(rdDat());
+	}
+	PORTB|=(1<<3)|(1<<4);//CE# OE# to high
 }
 inline uint8_t readB(uint32_t addr)
 {
-  uint8_t dat;
-  datIn;
-  PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
-  PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
-   shift24(addr);
-   dat=rdDat();
-  PORTB|=(1<<3)|(1<<4);//CE# OE# to high
-  return dat;
+	uint8_t dat;
+	datIn;
+	PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
+	PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
+	shift24(addr);
+	dat=rdDat();
+	PORTB|=(1<<3)|(1<<4);//CE# OE# to high
+	return dat;
 }
 inline uint8_t pollB(void)
 {
 	uint8_t dat;
- // datIn;
-  PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
-  PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
-  NOP;
-   //shift24(addr);
-   dat=rdDat();
-  PORTB|=(1<<3)|(1<<4);//CE# OE# to high
-  return dat;
+	PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
+	PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
+	NOP;
+	//shift24(addr);
+	dat=rdDat();
+	PORTB|=(1<<3)|(1<<4);//CE# OE# to high
+	return dat;
 }
-uint8_t verifyF(void)
+uint8_t verifyF(uint32_t cap)
 {
-  datIn;
-  PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
-  PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
-  uint32_t addr;
-  for (addr=0;addr<524288;addr++)
-  {
-   shift24(addr);
-   if (rdDat()!=0xFF)
-   {
-     serialWrB('E');
-     PORTB|=(1<<3)|(1<<4);//CE# OE# to high
-     return 1;
-   }
-  }
-  serialWrB('S');
-  PORTB|=(1<<3)|(1<<4);//CE# OE# to high
-  return 0;
+	datIn;
+	PORTB|=(1<<3)|(1<<4)|(1<<5);//CE# OE# WE# all high
+	PORTB&=~((1<<3)|(1<<4));//CE# OE# to low
+	uint32_t addr;
+	for (addr=0;addr<cap;++addr){
+	shift24(addr);
+	if (rdDat()!=0xFF){
+		serialWrB('E');
+		PORTB|=(1<<3)|(1<<4);//CE# OE# to high
+		return 1;
+		}
+	}
+	serialWrB('S');
+	PORTB|=(1<<3)|(1<<4);//CE# OE# to high
+	return 0;
 }
 void chipErase(void)
 {
@@ -202,66 +198,66 @@ void chipErase(void)
 }
 uint8_t readId(uint8_t which)
 {
-  datOut;
-  PORTB&=~(1<<4);//set OE# to low
-  PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high
-  PORTB|=(1<<4);//set OE# to high
-  sendCmd(0x5555,0xAA);
-  sendCmd(0x2AAA,0x55);
-  sendCmd(0x5555,0x90);
+	datOut;
+	PORTB&=~(1<<4);//set OE# to low
+	PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high
+	PORTB|=(1<<4);//set OE# to high
+	sendCmd(0x5555,0xAA);
+	sendCmd(0x2AAA,0x55);
+	sendCmd(0x5555,0x90);
 /*From http://ww1.microchip.com/downloads/en/DeviceDoc/25022B.pdf
 A command is written by asserting WE# low while keeping CE# low.
 The address bus is latched on the falling edge of WE# or CE#, whichever  occurs last.
 The data bus is latched on the rising edge of WE# or CE#, whichever occurs first*/
-  NOP;
-  NOP;
-  NOP;
-  PORTB&=~((1<<4)|(1<<3));//set OE# and CE# to low
-  datIn;
-  shift24(which);
-  uint8_t idR=rdDat();
-  PORTB|=(1<<3);//set CE# to HIGH
-  //exit
-  datOut;
-  PORTB|=(1<<4);//set OE# to high
-  sendCmd(0x5555,0xAA);
-  sendCmd(0x2AAA,0x55);
-  sendCmd(0x5555,0xF0);
-  NOP;
-  NOP;
-  NOP;
-  PORTB&=~(1<<3);//set CE# to low
-  return idR;
+	NOP;
+	NOP;
+	NOP;
+	PORTB&=~((1<<4)|(1<<3));//set OE# and CE# to low
+	datIn;
+	shift24(which);
+	uint8_t idR=rdDat();
+	PORTB|=(1<<3);//set CE# to HIGH
+	//exit
+	datOut;
+	PORTB|=(1<<4);//set OE# to high
+	sendCmd(0x5555,0xAA);
+	sendCmd(0x2AAA,0x55);
+	sendCmd(0x5555,0xF0);
+	NOP;
+	NOP;
+	NOP;
+	PORTB&=~(1<<3);//set CE# to low
+	return idR;
 }
 inline void pgmB(uint32_t addr,uint8_t dat)
 {
-  datOut;
-  PORTB&=~(1<<4);//set OE# to low
-  PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high
-  PORTB|=(1<<4);//set OE# to high
-  sendCmd(0x5555,0xAA);
-  sendCmd(0x2AAA,0x55);
-  sendCmd(0x5555,0xA0);
-  sendCmd(addr,dat);
-  //delayMicroseconds(20);
- // datIn;
- //while ((pollB()&64)!=(pollB()&64)) {}
- //
-   /*_delay_us(22);
-  PORTB&=~(1<<5);//set WE# to low*/
-  //This assumes a delay will follow the writting of the byte
-  serialWrB('N');
+	datOut;
+	PORTB&=~(1<<4);//set OE# to low
+	PORTB|=(1<<3)|(1<<5);//set CE# and WE# to high
+	PORTB|=(1<<4);//set OE# to high
+	sendCmd(0x5555,0xAA);
+	sendCmd(0x2AAA,0x55);
+	sendCmd(0x5555,0xA0);
+	sendCmd(addr,dat);
+	//delayMicroseconds(20);
+	// datIn;
+	//while ((pollB()&64)!=(pollB()&64)) {}
+	//
+	/*_delay_us(22);
+	PORTB&=~(1<<5);//set WE# to low*/
+	//This assumes a delay will follow the writting of the byte
+	serialWrB('N');
 }
 uint8_t verifyB(void)
 {
 	uint8_t dat;
 again:
 	dat=USART_Receive();
-  serialWrB(dat);
-  if (USART_Receive() == 'C')
-    return dat;
-  else
-    goto again;
+	serialWrB(dat);
+	if (USART_Receive() == 'C')
+		return dat;
+	else
+		goto again;
 }
 void main(void)
 {
@@ -274,59 +270,35 @@ void main(void)
 	UCSR0A|=2;//double speed aysnc
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0);//Enable receiver and transmitter
 	UCSR0C=6;//async 1 stop bit 8bit char no parity bits
-/*
-//The code commented below is just for fast testing before I wrote the computer-side program
-StringPgm(PSTR("Manufacturer ID: 0x"));
-  uint8_t x=readId(0);
-   StringRam(utoa(x,buf,16));
-  serialWrB('\n');
-  switch (x)
-  {
-   case 0xBF:
-  StringPgm(PSTR("Identifed as SST flash"));
-  break;
-  default:
-   StringPgm(PSTR("Unknown manufacturer or bad connection"));
-  break;
-  }
- serialWrB('\n');
-  StringPgm(PSTR("Device ID: 0x"));
-  x=readId(1);
-  StringRam(utoa(x,buf,16));
-  serialWrB('\n');
-  switch (x)
-  {
-   case 0xB5:
-  StringPgm(PSTR("SST39SF010A"));
-  break;
-  case 0xB6:
-  StringPgm(PSTR("SST39SF020A"));
-  break;
-  case 0xB7:
-  StringPgm(PSTR("SST39SF040"));
-  break;
-  default:
-  StringPgm(PSTR("Unknown flash"));
-  break;
-  }*/
 	_delay_ms(100);
 	StringPgm(PSTR("RDY"));
 	USART_Receive();//wait for handshake
 	char mode = USART_Receive();//wait for mode
 	StringPgm(PSTR("RDY"));
 	serialWrB(readId(0));
-	serialWrB(readId(1));
+	uint8_t cap=readId(1);
+	serialWrB(cap);
+	uint32_t capcity=524288L;
+	switch(cap){
+		case 0xB5:
+			capcity=131072L;
+		case 0xB6:
+			capcity=262144L;
+		break;
+		case 0xB7:
+			capcity=524288L;
+		break;
+	}
 	if(mode=='W'){
 		chipErase();
 		serialWrB('D');
-		verifyF();
+		verifyF(capcity);
 		uint32_t x;
-		for (x=0;x<524288UL;x++){
+		for (x=0;x<capcity;x++){
 			pgmB(x,USART_Receive());
 			serialWrB(readB(x));
 		}
 	}else if(mode=='R')
-		ReadChip();
-	else
-		while(1);//an error has occured
+		ReadChip(capcity);
+	while(1);
 }
