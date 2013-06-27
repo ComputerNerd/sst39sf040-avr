@@ -266,7 +266,7 @@ void main(void)
 	DDRD=28;//3 serial pins on d.2 to d.4 d.5 to d.7 contain msbs for flash data d.0 to d.4 is in port C
 	DDRB=62;//serial clocks (B.1 SHCP) (B.2 Latch) (B.3 CE#) (B.4 OE#) (B.5 WE#)
 	UBRR0H=0;
-	UBRR0L=1;//set to 1M baud
+	UBRR0L=3;//set to 0.5M baud
 	UCSR0A|=2;//double speed aysnc
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0);//Enable receiver and transmitter
 	UCSR0C=6;//async 1 stop bit 8bit char no parity bits
